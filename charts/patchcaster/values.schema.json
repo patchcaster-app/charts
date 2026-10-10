@@ -35,6 +35,32 @@
         "internalPort": { "type": "integer", "minimum": 1, "maximum": 65535 }
       }
     },
+    "httpRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "parentRefs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "group": { "type": "string" },
+              "kind": { "type": "string" },
+              "namespace": { "type": "string" },
+              "name": { "type": "string", "minLength": 1 },
+              "sectionName": { "type": "string" },
+              "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+            }
+          }
+        },
+        "hostnames": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      },
+      "if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+      "then": { "properties": { "parentRefs": { "minItems": 1 } } }
+    },
     "serviceAccount": {
       "type": "object",
       "additionalProperties": false,

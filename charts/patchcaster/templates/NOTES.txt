@@ -3,9 +3,16 @@ PatchCaster {{ .Values.image.tag | default .Chart.AppVersion }} installed as {{ 
   kubectl -n {{ .Release.Namespace }} rollout status deployment/{{ include "patchcaster.fullname" . }}
 
 Next steps:
-  1. Point your GitLab project webhook at  http://<your-ingress>/webhook
-     (the chart renders no Ingress on purpose, ADR-017) with the secret(s) from
+{{- if .Values.httpRoute.enabled }}
+  1. Point your GitLab webhook at  https://{{ first .Values.httpRoute.hostnames | default "<gateway-hostname>" }}/webhook
+     (routed by the HTTPRoute through your Gateway) with the secret(s) from
      secrets.signingSecrets.
+{{- else }}
+  1. Route /webhook to port {{ .Values.service.port }} of service/{{ include "patchcaster.fullname" . }}
+     (set httpRoute.enabled with your Gateway as parentRefs, or use your own
+     exposure; the chart renders no Ingress), then point your GitLab webhook
+     at it with the secret(s) from secrets.signingSecrets.
+{{- end }}
   2. Invite the Mattermost bot account into every channel named in the routing table.
   3. Scrape metrics on the "internal" service port (:{{ .Values.service.internalPort }}): /metrics and /readyz.
 

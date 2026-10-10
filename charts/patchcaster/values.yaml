@@ -19,9 +19,6 @@ image:
 # Registry pull secrets, e.g. [{name: ghcr-pull}] while the package is private.
 imagePullSecrets: []
 
-# Ingress is deliberately not rendered: hostname/TLS ownership belongs to the
-# platform's ingress, and the service speaks no TLS (TLS terminates upstream).
-
 nameOverride: ""
 fullnameOverride: ""
 
@@ -37,6 +34,22 @@ service:
   # Internal listener (probes + metrics); published so in-cluster
   # Prometheus can scrape it without extra plumbing.
   internalPort: 9090
+
+# Gateway API HTTPRoute for the webhook endpoint (ADR-017). The platform owns
+# the Gateway with its listeners, hostnames and TLS; the chart only attaches a
+# route to it. That needs the Gateway API CRDs and a Gateway whose
+# allowedRoutes admit this release's namespace. Only the /webhook path is
+# routed, so the internal listener never leaves the cluster. Ingress stays
+# deliberately unrendered: it would mix hostname and TLS ownership into the
+# chart.
+httpRoute:
+  enabled: false
+  # The Gateway to attach to, e.g. [{name: public, namespace: gateway-system,
+  # sectionName: https}]. Required when enabled.
+  parentRefs: []
+  # Hostnames the route answers for, e.g. [patchcaster.example.com]. Empty
+  # means every hostname the Gateway listener accepts.
+  hostnames: []
 
 serviceAccount:
   create: false

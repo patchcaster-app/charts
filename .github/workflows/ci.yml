@@ -25,9 +25,14 @@ jobs:
       # cluster's OpenAPI schema without scheduling pods — the pinned
       # ghcr.io image may be private, so nothing is pulled. A live install
       # smoke test becomes viable once the first application release exists.
+      # The test values enable the HTTPRoute, so the pinned Gateway API CRDs
+      # go in first.
       - name: Validate against a live API server
+        env:
+          GATEWAY_API_VERSION: v1.6.2
         run: |
           kind create cluster --wait 60s
+          kubectl apply --server-side -f "https://github.com/kubernetes-sigs/gateway-api/releases/download/${GATEWAY_API_VERSION}/standard-install.yaml"
           helm install patchcaster charts/patchcaster \
             --values charts/patchcaster/ci/test-values.yaml \
             --namespace patchcaster --create-namespace --dry-run=server
