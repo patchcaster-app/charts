@@ -1,0 +1,13 @@
+apiVersion: v2
+name: patchcaster
+description: |
+  PatchCaster: forwards GitLab 19+ merge request webhooks to Mattermost as one
+  live status board per MR. Requires an external PostgreSQL 18 (reached via
+  secrets.databaseUrl) and a Mattermost bot account (SYSREQ-033, ADR-017).
+type: application
+
+# Overridden at packaging time: the release workflow passes
+# --version <tag> --app-version <tag>, so a published chart always
+# carries version == appVersion == the release tag.
+version: 0.0.0
+appVersion: "0.0.0"

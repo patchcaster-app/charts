@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "patchcaster.fullname" . }}
+  labels:
+    {{- include "patchcaster.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    # A rollout briefly overlaps two pods. That is safe: outbox claims are
+    # lease-protected (FOR UPDATE SKIP LOCKED), so an old and a new worker can
+    # poll the same queue without double-posting.
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "patchcaster.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # Roll pods when the routing table changes: the process reads the file
+        # at startup only.
+        checksum/routing: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "patchcaster.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if not (or .Values.serviceAccount.create .Values.serviceAccount.name) }}
+      automountServiceAccountToken: false
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ include "patchcaster.graceSeconds" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if or .Values.serviceAccount.create .Values.serviceAccount.name }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default (include "patchcaster.fullname" .) }}
+      {{- end }}
+      containers:
+        - name: patchcaster
+          image: {{ include "patchcaster.imageRef" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: webhook
+              containerPort: {{ .Values.service.port }}
+            - name: internal
+              containerPort: {{ .Values.service.internalPort }}
+          env:
+            - name: PATCHCASTER_ADDR
+              value: ":{{ .Values.service.port }}"
+            - name: PATCHCASTER_INTERNAL_ADDR
+              value: ":{{ .Values.service.internalPort }}"
+            - name: PATCHCASTER_MATTERMOST_URL
+              value: {{ required "mattermostUrl is the Mattermost site URL (e.g. https://mm.example.com)" .Values.mattermostUrl | quote }}
+            - name: PATCHCASTER_DRAIN_TIMEOUT
+              value: {{ .Values.drainTimeout | quote }}
+            - name: PATCHCASTER_ROUTING_FILE
+              value: /etc/patchcaster/routing.yaml
+            - name: PATCHCASTER_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "patchcaster.secretName" . }}
+                  key: database-url
+            - name: PATCHCASTER_MATTERMOST_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "patchcaster.secretName" . }}
+                  key: mattermost-token
+            - name: PATCHCASTER_SIGNING_SECRETS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "patchcaster.secretName" . }}
+                  key: signing-secrets
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: routing
+              mountPath: /etc/patchcaster
+              readOnly: true
+          startupProbe:
+            httpGet:
+              path: /livez
+              port: internal
+            periodSeconds: 2
+            failureThreshold: 15
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: internal
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: internal
+            periodSeconds: 10
+            timeoutSeconds: 2
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: routing
+          configMap:
+            name: {{ include "patchcaster.fullname" . }}-routing
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

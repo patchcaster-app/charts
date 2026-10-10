@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "patchcaster.fullname" . }}
+  labels:
+    {{- include "patchcaster.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: webhook
+      port: {{ .Values.service.port }}
+      targetPort: webhook
+    # The internal listener (probes, metrics) is reachable in-cluster so
+    # Prometheus can scrape patchcaster_* without extra plumbing.
+    - name: internal
+      port: {{ .Values.service.internalPort }}
+      targetPort: internal
+  selector:
+    {{- include "patchcaster.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "patchcaster.fullname" . }}-routing
+  labels:
+    {{- include "patchcaster.labels" . | nindent 4 }}
+data:
+  # Passed through verbatim (SYSREQ-022); the Deployment rolls pods on change
+  # via a template checksum annotation.
+  routing.yaml: |
+    {{- required "routing.file must carry the routing table (see contrib/routing.example.yaml in the application repository)" .Values.routing.file | nindent 4 }}

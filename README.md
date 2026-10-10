@@ -1,0 +1,71 @@
+# PatchCaster Helm charts
+
+The [PatchCaster](https://github.com/patchcaster-app/patchcaster) Helm chart,
+published as an OCI artifact. Specification: `SYSREQ-033`; decision: `ADR-017`
+(both in the application repository's `docs/`).
+
+## Install
+
+```sh
+helm install patchcaster oci://ghcr.io/patchcaster-app/charts/patchcaster \
+  --version <X.Y.Z> \
+  --namespace patchcaster --create-namespace \
+  --set mattermostUrl=https://mm.example.com \
+  --set secrets.databaseUrl='postgres://…?sslmode=require' \
+  --set secrets.mattermostToken=… \
+  --set secrets.signingSecrets[0]=… \
+  --set-file routing.file=./routing.yaml
+```
+
+Or use a values file. `helm show values` of the artifact lists every knob with
+its comment; `values.schema.json` rejects misspelled keys at install time.
+
+Required material: a PostgreSQL 18 the pod can reach (migrations run at
+startup; the chart provisions nothing), a Mattermost bot token whose account
+is in every routed channel, and the routing table (one `channel` per
+`project`; see `contrib/routing.example.yaml` in the application repo).
+
+The chart renders: Deployment (probes on the internal listener, hardened
+securityContext, grace period derived strictly larger than `drainTimeout`),
+Service (webhook + internal/metrics), Secret (or bring your own via
+`existingSecret`), routing ConfigMap (rollout on change), optional
+ServiceAccount. Deliberately absent: Ingress, HPA, bundled PostgreSQL.
+
+## Verify provenance
+
+Charts are signed keyless with cosign at publish time (Actions OIDC); the
+identity is **this repository's** release workflow:
+
+```sh
+cosign verify \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  --certificate-identity-regexp 'https://github\.com/patchcaster-app/patchcaster-charts/\.github/workflows/release\.yml@refs/tags/v.+' \
+  oci://ghcr.io/patchcaster-app/charts/patchcaster:<X.Y.Z>
+```
+
+The image the chart pins (`appVersion`) carries its own signature under the
+*application* repository's identity — see its README.
+
+While the repository is private, the ghcr packages are private too:
+authenticate (`helm registry login ghcr.io …` / `imagePullSecrets`) or flip
+package visibility.
+
+## Development
+
+Requirements: `helm` 4.x and `kind` on PATH; `just` for the task aliases.
+
+```sh
+just chart-check    # helm lint --strict + full render of ci/test-values.yaml
+just chart-render   # the same render, printed
+just chart-package 0.0.1   # package into dist/ with an explicit version
+```
+
+CI additionally validates every manifest against a live API server
+(`kind` + `helm install --dry-run=server`).
+
+Releasing: push a `v*` tag **in this repository**. The workflow packages
+(`version` = `appVersion` = tag), pushes
+`oci://ghcr.io/patchcaster-app/charts/patchcaster:<tag>`, and signs the pushed
+digest. Tag the application and the chart the same version together; parity
+is checked at release acceptance (`helm show chart`), not enforced by
+automation — see ADR-017 for why.

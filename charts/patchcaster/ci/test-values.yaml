@@ -1,0 +1,56 @@
+# Rendered by `just chart-check` on every change: exercises the wide values
+# path (SA, pull secrets, extraEnv shapes, non-trivial durations).
+replicaCount: 1
+image:
+  repository: ghcr.io/patchcaster-app/patchcaster
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: ghcr-pull
+drainTimeout: 45s
+service:
+  type: ClusterIP
+  port: 8080
+  internalPort: 9090
+serviceAccount:
+  create: true
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::000000000000:role/patchcaster-demo
+routing:
+  file: |
+    routes:
+      - project: group/application
+        channel: "channel-id-here"
+      - project: group/other
+        channel: "channel-id-there"
+secrets:
+  databaseUrl: postgres://patchcaster:dev@postgres.database.svc:5432/patchcaster?sslmode=require
+  mattermostToken: dummy-bot-token
+  signingSecrets:
+    - rotating-old-secret
+    - current-secret
+mattermostUrl: https://mm.example.com
+extraEnv:
+  - name: PATCHCASTER_LOG_LEVEL
+    value: debug
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9090"
+podLabels:
+  team: platform
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 128Mi
+nodeSelector:
+  kubernetes.io/os: linux
+tolerations:
+  - key: team
+    operator: Equal
+    value: platform
+    effect: NoSchedule
