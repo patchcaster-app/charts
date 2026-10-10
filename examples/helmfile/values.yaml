@@ -1,0 +1,21 @@
+# Values for the PatchCaster release. The credentials come from the existing
+# Secret "patchcaster" (see ../README.md); every other key is documented in the
+# chart's values.yaml.
+mattermostUrl: https://mattermost.example.com
+existingSecret: patchcaster
+routing:
+  file: |
+    routes:
+      - project: group/application
+        channel: "channel-id-here"
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: public
+      namespace: gateway-system
+      sectionName: https
+  hostnames:
+    - patchcaster.example.com
+# While the image is private:
+# imagePullSecrets:
+#   - name: ghcr-pull

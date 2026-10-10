@@ -1,0 +1,23 @@
+# The chart as a Flux source. Flux pulls the pinned chart, checks its keyless
+# cosign signature against this repository's release workflow, and only then
+# hands it to the HelmRelease.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: patchcaster
+spec:
+  interval: 10m
+  url: oci://ghcr.io/patchcaster-app/charts/patchcaster
+  ref:
+    tag: 0.1.0
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+  verify:
+    provider: cosign
+    matchOIDCIdentity:
+      - issuer: '^https://token\.actions\.githubusercontent\.com$'
+        subject: '^https://github\.com/patchcaster-app/charts/\.github/workflows/release\.yml@refs/tags/v.+$'
+  # While the package is private, a docker-registry Secret for ghcr.io:
+  # secretRef:
+  #   name: ghcr-pull

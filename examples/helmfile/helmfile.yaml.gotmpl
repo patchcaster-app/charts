@@ -1,0 +1,26 @@
+# PatchCaster with helmfile 1.x: run `helmfile apply` in this directory. The
+# prepare hook refuses a chart that this repository's release workflow did not
+# sign, so cosign v3 must be on PATH.
+{{- $chartVersion := "0.1.0" }}
+
+repositories:
+  - name: patchcaster
+    url: ghcr.io/patchcaster-app/charts
+    oci: true
+
+releases:
+  - name: patchcaster
+    namespace: patchcaster
+    chart: patchcaster/patchcaster
+    version: {{ $chartVersion }}
+    values:
+      - values.yaml
+    hooks:
+      - events: ["prepare"]
+        showlogs: true
+        command: cosign
+        args:
+          - verify
+          - ghcr.io/patchcaster-app/charts/patchcaster:{{ $chartVersion }}
+          - --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+          - --certificate-identity-regexp=^https://github\.com/patchcaster-app/charts/\.github/workflows/release\.yml@refs/tags/v.+$

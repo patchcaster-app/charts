@@ -55,6 +55,13 @@ The Gateway's `allowedRoutes` must admit the release's namespace. Only the
 in-cluster. Without Gateway API, expose the `webhook` service port with
 whatever your platform uses instead.
 
+## Flux and helmfile
+
+[`examples/`](examples/) deploys the chart declaratively: a Flux
+`OCIRepository` and `HelmRelease` that only accept a chart signed by this
+repository's release workflow, and a helmfile that verifies that signature
+before it installs anything.
+
 ## Verify provenance
 
 Charts are signed keyless with cosign v3 at publish time (Actions OIDC), so
