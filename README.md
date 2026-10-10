@@ -2,7 +2,7 @@
 
 The [PatchCaster](https://github.com/patchcaster-app/patchcaster) Helm chart,
 published as an OCI artifact. Specification: `SYSREQ-033`; decision: `ADR-017`
-(both in the application repository's `docs/`).
+(both in the application repository's `docs/specs/`).
 
 ## Install
 
@@ -39,12 +39,13 @@ identity is **this repository's** release workflow:
 ```sh
 cosign verify \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity-regexp 'https://github\.com/patchcaster-app/patchcaster-charts/\.github/workflows/release\.yml@refs/tags/v.+' \
-  oci://ghcr.io/patchcaster-app/charts/patchcaster:<X.Y.Z>
+  --certificate-identity-regexp 'https://github\.com/patchcaster-app/charts/\.github/workflows/release\.yml@refs/tags/v.+' \
+  ghcr.io/patchcaster-app/charts/patchcaster:<X.Y.Z>
 ```
 
 The image the chart pins (`appVersion`) carries its own signature under the
-*application* repository's identity — see its README.
+*application* repository's identity — see its
+[install guide](https://github.com/patchcaster-app/patchcaster/blob/main/docs/install.md#verify-what-you-deploy).
 
 While the repository is private, the ghcr packages are private too:
 authenticate (`helm registry login ghcr.io …` / `imagePullSecrets`) or flip
