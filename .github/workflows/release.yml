@@ -1,3 +1,5 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+---
 # Publishes the chart as an OCI artifact and signs it keyless (ADR-017,
 # SYSREQ-033). Tag-triggered in this repository; version and appVersion are
 # set from the tag, keeping the chart's promise about the application image
