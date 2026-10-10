@@ -1,0 +1,61 @@
+# Publishes the chart as an OCI artifact and signs it keyless (ADR-017,
+# SYSREQ-033). Tag-triggered in this repository; version and appVersion are
+# set from the tag, keeping the chart's promise about the application image
+# truthful. cosign's identity here is THIS repository's workflow — verifiers
+# must accept it alongside the application repository's release identity.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write # keyless cosign via Actions OIDC (no stored secrets)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: tools/cosign/go.mod
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+
+      - name: Gate
+        run: just chart-check
+
+      - name: Login to ghcr.io
+        run: |
+          echo "${GITHUB_TOKEN}" | helm registry login ghcr.io \
+            --username "${GITHUB_ACTOR}" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+
+      - name: Package
+        run: just chart-package "${GITHUB_REF_NAME#v}"
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Push
+        id: push
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          out="$(helm push "dist/patchcaster-${version}.tgz" oci://ghcr.io/patchcaster-app/charts)"
+          echo "${out}"
+          # Print reports "Digest: sha256:..."; the sign step pins exactly it.
+          digest="$(echo "${out}" | grep -o 'sha256:[0-9a-f]\{64\}' | tail -1)"
+          test -n "${digest}"
+          echo "digest=${digest}" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Sign (keyless cosign, ADR-016 mechanism, pinned tools module)
+        run: |
+          go tool -modfile tools/cosign/go.mod cosign sign --yes \
+            "ghcr.io/patchcaster-app/charts/patchcaster@${DIGEST}"
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}

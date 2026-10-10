@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+
+      - name: Lint and render
+        run: just chart-check
+
+      # Server-side validation against a real API server (kind is bundled on
+      # the runner). --dry-run=server validates every manifest against the
+      # cluster's OpenAPI schema without scheduling pods — the pinned
+      # ghcr.io image may be private, so nothing is pulled. A live install
+      # smoke test becomes viable once the first application release exists.
+      - name: Validate against a live API server
+        run: |
+          kind create cluster --wait 60s
+          helm install patchcaster charts/patchcaster \
+            --values charts/patchcaster/ci/test-values.yaml \
+            --namespace patchcaster --create-namespace --dry-run=server
+          kind delete cluster
