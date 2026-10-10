@@ -33,8 +33,9 @@ ServiceAccount. Deliberately absent: Ingress, HPA, bundled PostgreSQL.
 
 ## Verify provenance
 
-Charts are signed keyless with cosign at publish time (Actions OIDC); the
-identity is **this repository's** release workflow:
+Charts are signed keyless with cosign v3 at publish time (Actions OIDC), so
+verify them with cosign v3 or later. The identity is **this repository's**
+release workflow:
 
 ```sh
 cosign verify \
