@@ -1,8 +1,8 @@
 # Chart repository tasks.
 # helm is ambient (developed against helm 4.3, API v2 throughout; also
-# bundled on GitHub runners). cosign for release signing is the pinned
-# tools/cosign module, mirroring the application repository (ADR-016/017) —
-# it is invoked by the release workflow, not from here.
+# bundled on GitHub runners). cosign for release signing comes from the
+# cosign-installer action in the release workflow, as in the application
+# repository (ADR-016/017). It is not invoked from here.
 
 default: chart-check
 
