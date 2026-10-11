@@ -1,4 +1,4 @@
-# Default values for the PatchCaster chart (ADR-017).
+# Default values for the PatchCaster chart.
 # The values surface is validated by values.schema.json: an unknown or
 # misspelled key fails the install immediately.
 
@@ -23,8 +23,9 @@ nameOverride: ""
 fullnameOverride: ""
 
 # PATCHCASTER_DRAIN_TIMEOUT. The pod's terminationGracePeriodSeconds is always
-# derived strictly larger (drain + 3 s), the SYSREQ-023 owner condition, so it
-# cannot be misconfigured by hand. Accepts Go durations ending in s, m or h.
+# derived strictly larger (drain + 3 s), so the drain finishes before the pod
+# is killed and the two cannot be misconfigured by hand. Accepts Go durations
+# ending in s, m or h.
 drainTimeout: 30s
 
 service:
@@ -35,8 +36,8 @@ service:
   # Prometheus can scrape it without extra plumbing.
   internalPort: 9090
 
-# Gateway API HTTPRoute for the webhook endpoint (ADR-017). The platform owns
-# the Gateway with its listeners, hostnames and TLS; the chart only attaches a
+# Gateway API HTTPRoute for the webhook endpoint. The platform owns the
+# Gateway with its listeners, hostnames and TLS; the chart only attaches a
 # route to it. That needs the Gateway API CRDs and a Gateway whose
 # allowedRoutes admit this release's namespace. Only the /webhook path is
 # routed, so the internal listener never leaves the cluster. Ingress stays
@@ -56,10 +57,10 @@ serviceAccount:
   name: ""
   annotations: {}
 
-# The routing table (SYSREQ-022) is passed through verbatim into a ConfigMap
-# and mounted read-only; a change triggers a pod rollout via a template
-# checksum annotation. Shape (verified against the app): one `channel` id per
-# `project` path; the app refuses to boot on a malformed table.
+# The routing table is passed through verbatim into a ConfigMap and mounted
+# read-only; a change triggers a pod rollout via a template checksum
+# annotation. Shape (verified against the app): one `channel` id per `project`
+# path; the app refuses to boot on a malformed table.
 routing:
   file: |
     routes:
@@ -73,7 +74,7 @@ existingSecret: ""
 secrets:
   databaseUrl: ""
   mattermostToken: ""
-  # List; give two entries during secret rotation (SYSREQ-015).
+  # List; give two entries during secret rotation.
   signingSecrets: []
 
 # Not a secret: the Mattermost site URL.

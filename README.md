@@ -1,8 +1,7 @@
 # PatchCaster Helm charts
 
 The [PatchCaster](https://github.com/patchcaster-app/patchcaster) Helm chart,
-published as an OCI artifact. Specification: `SYSREQ-033`; decision: `ADR-017`
-(both in the application repository's `docs/specs/`).
+published as an OCI artifact.
 
 ## Install
 
