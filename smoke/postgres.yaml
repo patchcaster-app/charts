@@ -1,0 +1,42 @@
+# A disposable PostgreSQL 18 for the smoke install. It lives only as long as
+# the throwaway cluster, so it keeps no volume and uses a fixed password.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: docker.io/library/postgres:18
+          env:
+            - name: POSTGRES_USER
+              value: patchcaster
+            - name: POSTGRES_PASSWORD
+              value: smoke
+            - name: POSTGRES_DB
+              value: patchcaster
+          ports:
+            - containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "patchcaster", "-d", "patchcaster"]
+            periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432

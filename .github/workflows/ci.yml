@@ -21,12 +21,10 @@ jobs:
         run: just chart-check
 
       # Server-side validation against a real API server (kind is bundled on
-      # the runner). --dry-run=server validates every manifest against the
-      # cluster's OpenAPI schema without scheduling pods — the pinned
-      # ghcr.io image may be private, so nothing is pulled. A live install
-      # smoke test becomes viable once the first application release exists.
-      # The test values enable the HTTPRoute, so the pinned Gateway API CRDs
-      # go in first.
+      # the runner). --dry-run=server validates every manifest of the wide
+      # test values against the cluster's OpenAPI schema without scheduling
+      # pods. The smoke job below installs for real. The test values enable
+      # the HTTPRoute, so the pinned Gateway API CRDs go in first.
       - name: Validate against a live API server
         env:
           GATEWAY_API_VERSION: v1.6.2
@@ -37,3 +35,17 @@ jobs:
             --values charts/patchcaster/ci/test-values.yaml \
             --namespace patchcaster --create-namespace --dry-run=server
           kind delete cluster
+
+  # A real install of the chart as a released application version, next to
+  # a disposable PostgreSQL: the pod has to pull its image and turn ready.
+  # Move the pin to each new application release.
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      PATCHCASTER_APP_VERSION: 0.1.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+
+      - name: Install the chart and wait until it is ready
+        run: just chart-smoke "${PATCHCASTER_APP_VERSION}"

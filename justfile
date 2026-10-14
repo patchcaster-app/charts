@@ -15,6 +15,12 @@ chart-check:
 chart-render:
 	helm template patchcaster charts/patchcaster --values charts/patchcaster/ci/test-values.yaml
 
+# Needs kind and a container engine. With podman, export
+# KIND_EXPERIMENTAL_PROVIDER=podman first.
+# Install the chart for real as an application release (e.g. 0.1.0) in a throwaway kind cluster.
+chart-smoke app_version:
+	smoke/install.sh {{app_version}}
+
 # Package with an explicit version; the release workflow does exactly this,
 # setting version and appVersion both to the tag (SYSREQ-033).
 chart-package version:

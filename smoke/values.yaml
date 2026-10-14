@@ -1,0 +1,9 @@
+# Values for the smoke install: the chart's defaults plus the minimum it
+# requires. Mattermost is never reached, because a pod turns ready without
+# posting anything.
+mattermostUrl: http://mattermost.invalid
+secrets:
+  databaseUrl: postgres://patchcaster:smoke@postgres:5432/patchcaster?sslmode=disable
+  mattermostToken: smoke-token
+  signingSecrets:
+    - smoke-signing-secret
