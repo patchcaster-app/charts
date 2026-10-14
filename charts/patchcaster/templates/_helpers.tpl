@@ -34,14 +34,17 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
 {{/*
-Image reference: a digest wins over any tag, otherwise the tag defaults to
-the chart's appVersion (releases set it equal to the application tag).
+Image reference: a digest wins over any tag. Without an explicit tag the
+chart pulls the application's release tag, v<appVersion>: the application
+tags its images vX.Y.Z, while appVersion carries the bare X.Y.Z that
+releases set from the tag. A leading v in appVersion is not doubled.
 */}}
 {{- define "patchcaster.imageRef" -}}
 {{- if .Values.image.digest -}}
 {{- printf "%s@%s" .Values.image.repository .Values.image.digest -}}
 {{- else -}}
-{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- $releaseTag := printf "v%s" (trimPrefix "v" .Chart.AppVersion) -}}
+{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default $releaseTag) -}}
 {{- end -}}
 {{- end -}}
 

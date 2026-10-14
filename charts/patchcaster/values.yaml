@@ -9,8 +9,9 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/patchcaster-app/patchcaster
-  # Defaults to the chart's appVersion, which releases set equal to the
-  # application tag. Only override to pin something else explicitly.
+  # Defaults to the application release the chart was published with,
+  # v<appVersion> (for example v0.1.0). Only override to pin something else
+  # explicitly.
   tag: ""
   # When set, wins over tag: ghcr.io/patchcaster-app/patchcaster@sha256:...
   digest: ""
