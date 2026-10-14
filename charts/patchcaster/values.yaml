@@ -29,6 +29,30 @@ fullnameOverride: ""
 # ending in s, m or h.
 drainTimeout: 30s
 
+# Delivery and retention tuning. Each value sets the application setting
+# named next to it. Empty keeps the application's own default, which its
+# configuration reference lists. Durations use Go syntax such as 90s, 15m or
+# 4h and must be positive.
+
+# PATCHCASTER_POLL_INTERVAL. New messages wake the worker at once through
+# PostgreSQL notifications. This bounds how late it picks up retries that
+# come due, messages whose worker died and missed wake-ups. Behind a
+# transaction-mode pooler such as PgBouncer there are no wake-ups, so this
+# is also how quickly every message goes out.
+pollInterval: ""
+# PATCHCASTER_CLAIM_LEASE. How long a claimed message stays with its worker
+# before another worker may take it over.
+claimLease: ""
+# PATCHCASTER_EVENT_MAX_AGE. Verified deliveries older than this are
+# discarded as stale.
+eventMaxAge: ""
+# PATCHCASTER_SEEN_RETENTION. How long delivery ids are remembered to drop
+# duplicates. It must exceed the event max age, or a replay could pass as
+# new. The application refuses to start otherwise.
+seenRetention: ""
+# PATCHCASTER_LOG_LEVEL: debug, info, warn or error.
+logLevel: ""
+
 service:
   type: ClusterIP
   # Webhook listener (GitLab posts here).

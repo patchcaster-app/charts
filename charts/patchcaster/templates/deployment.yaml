@@ -65,6 +65,26 @@ spec:
               value: {{ required "mattermostUrl is the Mattermost site URL (e.g. https://mm.example.com)" .Values.mattermostUrl | quote }}
             - name: PATCHCASTER_DRAIN_TIMEOUT
               value: {{ .Values.drainTimeout | quote }}
+            {{- with .Values.pollInterval }}
+            - name: PATCHCASTER_POLL_INTERVAL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.claimLease }}
+            - name: PATCHCASTER_CLAIM_LEASE
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.eventMaxAge }}
+            - name: PATCHCASTER_EVENT_MAX_AGE
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.seenRetention }}
+            - name: PATCHCASTER_SEEN_RETENTION
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.logLevel }}
+            - name: PATCHCASTER_LOG_LEVEL
+              value: {{ . | quote }}
+            {{- end }}
             - name: PATCHCASTER_ROUTING_FILE
               value: /etc/patchcaster/routing.yaml
             - name: PATCHCASTER_DATABASE_URL
