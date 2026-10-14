@@ -20,7 +20,4 @@ instead.
 * [`helmfile/`](helmfile/): a helmfile that pins the chart and verifies its
   signature in a `prepare` hook. Needs helmfile 1.x and cosign v3.
 
-Both pin chart `0.1.0`; change it to the release you deploy. While the
-packages are private, add registry credentials: `secretRef` on the
-`OCIRepository` or `helm registry login ghcr.io` for helmfile, and
-`imagePullSecrets` in the values for the image.
+Both pin chart `0.1.0`; change it to the release you deploy. The chart and the image are public, so neither needs registry credentials.

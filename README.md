@@ -1,8 +1,7 @@
 # PatchCaster Helm charts
 
 The [PatchCaster](https://github.com/patchcaster-app/patchcaster) Helm chart,
-published as an OCI artifact. Specification: `SYSREQ-033`; decision: `ADR-017`
-(both in the application repository's `docs/specs/`).
+published as an OCI artifact.
 
 ## Install
 
@@ -75,13 +74,7 @@ cosign verify \
   ghcr.io/patchcaster-app/charts/patchcaster:<X.Y.Z>
 ```
 
-The image the chart pins (`appVersion`) carries its own signature under the
-*application* repository's identity — see its
-[install guide](https://github.com/patchcaster-app/patchcaster/blob/main/docs/install.md#verify-what-you-deploy).
-
-While the repository is private, the ghcr packages are private too:
-authenticate (`helm registry login ghcr.io …` / `imagePullSecrets`) or flip
-package visibility.
+The image the chart pins by default (`v<appVersion>`, the application release the chart was published with) carries its own signature under the *application* repository's identity — see its [install guide](https://github.com/patchcaster-app/patchcaster/blob/main/docs/install.md#verify-what-you-deploy).
 
 ## Development
 
@@ -91,14 +84,9 @@ Requirements: `helm` 4.x and `kind` on PATH; `just` for the task aliases.
 just chart-check    # helm lint --strict + full render of ci/test-values.yaml
 just chart-render   # the same render, printed
 just chart-package 0.0.1   # package into dist/ with an explicit version
+just chart-smoke 0.1.0     # install for real as that application release, in a throwaway kind cluster
 ```
 
-CI additionally validates every manifest against a live API server
-(`kind` + `helm install --dry-run=server`).
+CI additionally validates every manifest against a live API server (`kind` + `helm install --dry-run=server`) and installs the chart for real as a pinned application release, next to a disposable PostgreSQL, until the pod is ready. `just chart-smoke` creates its own kind cluster and kubeconfig, so your kubectl configuration stays untouched. With podman, export `KIND_EXPERIMENTAL_PROVIDER=podman` first.
 
-Releasing: push a `v*` tag **in this repository**. The workflow packages
-(`version` = `appVersion` = tag), pushes
-`oci://ghcr.io/patchcaster-app/charts/patchcaster:<tag>`, and signs the pushed
-digest. Tag the application and the chart the same version together; parity
-is checked at release acceptance (`helm show chart`), not enforced by
-automation — see ADR-017 for why.
+Releasing: push a `v*` tag **in this repository**. The workflow installs the chart as that application release first, then packages (`version` = `appVersion` = tag), pushes `oci://ghcr.io/patchcaster-app/charts/patchcaster:<tag>`, and signs the pushed digest. Release the application first and tag the chart with the same version afterwards: the chart's release stops before it pushes anything when no application image of that version exists or the pod does not turn ready.

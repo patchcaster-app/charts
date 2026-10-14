@@ -7,6 +7,11 @@ image:
 imagePullSecrets:
   - name: ghcr-pull
 drainTimeout: 45s
+pollInterval: 1m30s
+claimLease: 2m
+eventMaxAge: 6h
+seenRetention: 48h
+logLevel: debug
 service:
   type: ClusterIP
   port: 8080
@@ -38,8 +43,8 @@ secrets:
     - current-secret
 mattermostUrl: https://mm.example.com
 extraEnv:
-  - name: PATCHCASTER_LOG_LEVEL
-    value: debug
+  - name: GOMEMLIMIT
+    value: 100MiB
   - name: POD_NAME
     valueFrom:
       fieldRef:

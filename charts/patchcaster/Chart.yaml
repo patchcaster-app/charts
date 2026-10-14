@@ -3,7 +3,7 @@ name: patchcaster
 description: |
   PatchCaster: forwards GitLab 19+ merge request webhooks to Mattermost as one
   live status board per MR. Requires an external PostgreSQL 18 (reached via
-  secrets.databaseUrl) and a Mattermost bot account (SYSREQ-033, ADR-017).
+  secrets.databaseUrl) and a Mattermost bot account.
 type: application
 
 # Overridden at packaging time: the release workflow passes
@@ -11,3 +11,8 @@ type: application
 # carries version == appVersion == the release tag.
 version: 0.0.0
 appVersion: "0.0.0"
+
+# Chart.yaml has no licence field. This annotation is the common way to
+# declare one, which `helm show chart` and Artifact Hub display.
+annotations:
+  artifacthub.io/license: MIT

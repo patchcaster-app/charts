@@ -14,7 +14,7 @@ spec:
   {{- end }}
   rules:
     # The webhook path only: the internal listener (probes, metrics) stays
-    # in-cluster (SYSARCH-004 in the application repository).
+    # in-cluster.
     - matches:
         - path:
             type: Exact

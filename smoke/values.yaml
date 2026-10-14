@@ -1,0 +1,15 @@
+# Values for the smoke install: the minimum the chart requires, plus every
+# tuning value, so the application proves it accepts what the chart renders.
+# Mattermost is never reached, because a pod turns ready without posting
+# anything.
+mattermostUrl: http://mattermost.invalid
+pollInterval: 5s
+claimLease: 90s
+eventMaxAge: 2h
+seenRetention: 12h
+logLevel: debug
+secrets:
+  databaseUrl: postgres://patchcaster:smoke@postgres:5432/patchcaster?sslmode=disable
+  mattermostToken: smoke-token
+  signingSecrets:
+    - smoke-signing-secret

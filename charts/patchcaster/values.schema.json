@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft-07/schema#",
-  "title": "PatchCaster chart values (ADR-017)",
+  "title": "PatchCaster chart values",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -26,6 +26,11 @@
     "nameOverride": { "type": "string" },
     "fullnameOverride": { "type": "string" },
     "drainTimeout": { "type": "string", "pattern": "^[0-9]+(s|m|h)?$" },
+    "pollInterval": { "$ref": "#/definitions/optionalDuration" },
+    "claimLease": { "$ref": "#/definitions/optionalDuration" },
+    "eventMaxAge": { "$ref": "#/definitions/optionalDuration" },
+    "seenRetention": { "$ref": "#/definitions/optionalDuration" },
+    "logLevel": { "type": "string", "enum": ["", "debug", "info", "warn", "error"] },
     "service": {
       "type": "object",
       "additionalProperties": false,
@@ -111,5 +116,12 @@
     "affinity": { "type": "object" },
     "podSecurityContext": { "type": "object" },
     "containerSecurityContext": { "type": "object" }
+  },
+  "definitions": {
+    "optionalDuration": {
+      "description": "A Go duration such as 90s, 15m or 4h, or empty for the application's default.",
+      "type": "string",
+      "pattern": "^$|^([0-9]+(\\.[0-9]+)?(ns|us|ms|s|m|h))+$"
+    }
   }
 }

@@ -18,6 +18,3 @@ spec:
     matchOIDCIdentity:
       - issuer: '^https://token\.actions\.githubusercontent\.com$'
         subject: '^https://github\.com/patchcaster-app/charts/\.github/workflows/release\.yml@refs/tags/v.+$'
-  # While the package is private, a docker-registry Secret for ghcr.io:
-  # secretRef:
-  #   name: ghcr-pull
