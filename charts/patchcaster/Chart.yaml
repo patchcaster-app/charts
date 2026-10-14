@@ -11,3 +11,8 @@ type: application
 # carries version == appVersion == the release tag.
 version: 0.0.0
 appVersion: "0.0.0"
+
+# Chart.yaml has no licence field. This annotation is the common way to
+# declare one, which `helm show chart` and Artifact Hub display.
+annotations:
+  artifacthub.io/license: MIT
