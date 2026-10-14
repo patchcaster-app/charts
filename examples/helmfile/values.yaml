@@ -16,6 +16,3 @@ httpRoute:
       sectionName: https
   hostnames:
     - patchcaster.example.com
-# While the image is private:
-# imagePullSecrets:
-#   - name: ghcr-pull

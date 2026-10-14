@@ -17,7 +17,8 @@ image:
   digest: ""
   pullPolicy: IfNotPresent
 
-# Registry pull secrets, e.g. [{name: ghcr-pull}] while the package is private.
+# Registry pull secrets, e.g. [{name: registry-pull}] when the image comes
+# from a private mirror. The published image needs none.
 imagePullSecrets: []
 
 nameOverride: ""

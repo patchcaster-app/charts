@@ -76,10 +76,6 @@ cosign verify \
 
 The image the chart pins by default (`v<appVersion>`, the application release the chart was published with) carries its own signature under the *application* repository's identity — see its [install guide](https://github.com/patchcaster-app/patchcaster/blob/main/docs/install.md#verify-what-you-deploy).
 
-While the repository is private, the ghcr packages are private too:
-authenticate (`helm registry login ghcr.io …` / `imagePullSecrets`) or flip
-package visibility.
-
 ## Development
 
 Requirements: `helm` 4.x and `kind` on PATH; `just` for the task aliases.
